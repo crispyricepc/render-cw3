@@ -288,7 +288,7 @@ int initializeGLFW() {
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   glfwPollEvents();
-  glfwSetCursorPos(window, window_width / 2, window_height / 2);
+  glfwSetCursorPos(window, float(window_width) / 2, float(window_height) / 2);
 
   return 0;
 }
