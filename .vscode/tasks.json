@@ -1,0 +1,27 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Premake: Clean",
+      "type": "shell",
+      "command": "premake5 --cc=clang gmake && premake5 export-compile-commands && make clean && ln -srf compile_commands/debug_x64.json _build_/debug-x64-clang/compile_commands.json"
+    },
+    {
+      "label": "Premake: Build Debug",
+      "type": "shell",
+      "command": "make config=debug_x64 main -j$(nproc)",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Premake: Build Release",
+      "type": "shell",
+      "command": "make config=release_x64 main -j$(nproc)",
+    }
+  ]
+}
