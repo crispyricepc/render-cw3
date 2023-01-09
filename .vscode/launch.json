@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Debug",
       "program": "${workspaceFolder}/bin/main-debug-x64-clang.exe",
-      "args": [],
+      "args": "-t grass.bmp -h mountains_height.bmp",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Premake: Build Debug"
     }

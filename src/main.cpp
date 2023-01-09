@@ -53,6 +53,39 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
+// Processing command line arguments
+
+struct CLIArgs {
+  std::string modelPath = "";
+  std::string texturePath = "banana.bmp";
+  std::string heightMapPath = "";
+};
+CLIArgs processCLIArgs(int argc, char *argv[]) {
+  CLIArgs args;
+
+  for (int i = 1; i < argc; i++) {
+    if (argv[i] == std::string("-m")) {
+      args.modelPath = argv[i + 1];
+      i++;
+      continue;
+    }
+
+    if (argv[i] == std::string("-t")) {
+      args.texturePath = argv[i + 1];
+      i++;
+      continue;
+    }
+
+    if (argv[i] == std::string("-h")) {
+      args.heightMapPath = argv[i + 1];
+      i++;
+      continue;
+    }
+  }
+
+  return args;
+}
+
 GLuint loadBMP_custom(const char *imagepath, GLenum filter_mode,
                       GLenum what_happens_at_edge, int &width, int &height) {
 
@@ -510,16 +543,19 @@ void UnloadModel() {
   glDeleteVertexArrays(1, &VertexArrayID);
 }
 
-void LoadTextures() {
+void LoadTextures(const std::string &imagePath) {
   // Load the texture
   int w, h;
-  DiffuseTexture = loadBMP_custom("banana.bmp", GL_LINEAR_MIPMAP_LINEAR,
+  DiffuseTexture = loadBMP_custom(imagePath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
                                   GL_MIRRORED_REPEAT, w, h);
 }
 
 void UnloadTextures() { glDeleteTextures(1, &DiffuseTexture); }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+  // Process CLI arguments
+  CLIArgs args = processCLIArgs(argc, argv);
+
   // Initialize and create a window.
   if (initializeGLFW() != 0)
     return -1;
@@ -537,8 +573,8 @@ int main(void) {
 
   // Use our shader
 
-  LoadTextures();
-  LoadModel("banana.obj", GL_TRIANGLES);
+  LoadTextures(args.texturePath);
+  LoadModel(args.modelPath, GL_TRIANGLES);
 
   // Our light position is fixed
   glm::vec3 lightPos = glm::vec3(0, -0.5, -0.5);
