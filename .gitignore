@@ -1,0 +1,25 @@
+# Premake generated build files
+*.make
+Makefile
+lib
+*.vcxproj*
+*.sln
+bin
+*.xcworkspace
+*.xcodeproj
+
+# Premake build directory
+/_build_
+
+# Premake files
+/premake5
+/premake5.exe
+
+# Compile commands
+/compile_commands
+
+# 3rd-party libraries
+/external/glew*
+
+# Ignore bitmap files to save storage
+*.bmp
