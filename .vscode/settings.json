@@ -5,14 +5,14 @@
     "--header-insertion=never"
   ],
   "files.exclude": {
-    "**/*.sln": true,
-    "**/*.vcxproj*": true,
-    "**/*.xcodeproj": true,
-    "**/*.xcworkspace": true,
-    "bin": true,
-    "compile_commands": true,
-    "export-compile-commands": true,
-    "external": true,
-    "lib": true
+    // "**/*.sln": true,
+    // "**/*.vcxproj*": true,
+    // "**/*.xcodeproj": true,
+    // "**/*.xcworkspace": true,
+    // "bin": true,
+    // "compile_commands": true,
+    // "export-compile-commands": true,
+    // "external": true,
+    // "lib": true
   },
 }

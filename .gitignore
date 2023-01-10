@@ -23,3 +23,11 @@ bin
 
 # Ignore bitmap files to save storage
 *.bmp
+
+# Meson wrapdb
+/subprojects/*-*
+/subprojects/packagecache
+/subprojects/wrapdb.json
+
+# MacOS
+.DS_Store
