@@ -8,6 +8,7 @@
     "compile_commands": true,
     "export-compile-commands": true,
     "external": true,
-    "lib": true
+    "lib": true,
+    "subprojects": true
   },
 }
