@@ -33,16 +33,17 @@ float sampleHeightMap() {
 
 void main() {
   // Output position of the vertex, in clip space : MVP * position
-  vertexPosition_modelspace.y = sampleHeightMap();
-  gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
+  vec3 vertexPosition_displaced = vertexPosition_modelspace;
+  vertexPosition_displaced.y = sampleHeightMap();
+  gl_Position = MVP * vec4(vertexPosition_displaced, 1);
 
   // Position of the vertex, in worldspace : M * position
-  Position_worldspace = (M * vec4(vertexPosition_modelspace, 1)).xyz;
+  Position_worldspace = (M * vec4(vertexPosition_displaced, 1)).xyz;
 
   // Vector that goes from the vertex to the camera, in camera space.
   // In camera space, the camera is at the origin (0,0,0).
   vec3 vertexPosition_cameraspace =
-      (V * M * vec4(vertexPosition_modelspace, 1)).xyz;
+      (V * M * vec4(vertexPosition_displaced, 1)).xyz;
   EyeDirection_cameraspace = vec3(0, 0, 0) - vertexPosition_cameraspace;
 
   // Vector that goes from the vertex to the light, in camera space. M is
