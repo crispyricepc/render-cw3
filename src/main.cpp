@@ -37,6 +37,7 @@ GLuint programID;
 
 // Textures
 GLuint DiffuseTexture;
+GLuint HeightMapTexture;
 
 // Model
 std::vector<unsigned int> indices;
@@ -289,7 +290,7 @@ int initializeGLFW() {
 
   glfwWindowHint(GLFW_SAMPLES, 1);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,
                  GL_TRUE); // To make MacOS happy; should not be needed
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -300,7 +301,9 @@ int initializeGLFW() {
   if (window == NULL) {
     fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, "
                     "they are not 3.3 compatible.\n");
-    getchar();
+    const char *description;
+    int code = glfwGetError(&description);
+    printf("Error code: %d, Description:\n  %s\n", code, description);
     glfwTerminate();
     return -1;
   }
@@ -543,14 +546,20 @@ void UnloadModel() {
   glDeleteVertexArrays(1, &VertexArrayID);
 }
 
-void LoadTextures(const std::string &imagePath) {
+void LoadTextures(const std::string &imagePath,
+                  const std::string &heightMapPath) {
   // Load the texture
   int w, h;
   DiffuseTexture = loadBMP_custom(imagePath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
                                   GL_MIRRORED_REPEAT, w, h);
+  HeightMapTexture = loadBMP_custom(
+      heightMapPath.c_str(), GL_LINEAR_MIPMAP_LINEAR, GL_MIRRORED_REPEAT, w, h);
 }
 
-void UnloadTextures() { glDeleteTextures(1, &DiffuseTexture); }
+void UnloadTextures() {
+  glDeleteTextures(1, &DiffuseTexture);
+  glDeleteTextures(1, &HeightMapTexture);
+}
 
 int main(int argc, char *argv[]) {
   // Process CLI arguments
@@ -573,7 +582,7 @@ int main(int argc, char *argv[]) {
 
   // Use our shader
 
-  LoadTextures(args.texturePath);
+  LoadTextures(args.texturePath, args.heightMapPath);
   LoadModel(args.modelPath, GL_TRIANGLES);
 
   // Our light position is fixed
@@ -621,15 +630,25 @@ int main(int argc, char *argv[]) {
     // First pass: Base mesh
     glUseProgram(programID);
 
+    GLuint HeightMapTexutreID =
+        glGetUniformLocation(programID, "HeightMapTextureSampler");
     GLuint DiffuseTextureID =
         glGetUniformLocation(programID, "DiffuseTextureSampler");
 
     // Set textures
+    // Heightmap
     glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, HeightMapTexture);
+    glUniform1i(HeightMapTexutreID, 0);
+    glBindTexture(GL_TEXTURE_2D, -1);
+    // Diffuse
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, DiffuseTexture);
-    glUniform1i(DiffuseTextureID, 0);
+    glUniform1i(DiffuseTextureID, 1);
+    glBindTexture(GL_TEXTURE_2D, -1);
 
     // Get a handle for our uniforms
+    GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
     GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
@@ -638,6 +657,7 @@ int main(int argc, char *argv[]) {
         glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // Send our transformation to the currently bound shader,
+    glUniform1f(HeightScaleID, m_scale);
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
     glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);

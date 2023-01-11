@@ -16,15 +16,25 @@ out vec3 LightDirection_tangentspace;
 out vec3 EyeDirection_tangentspace;
 
 // Values that stay constant for the whole mesh.
+uniform sampler2D HeightMapTextureSampler;
+uniform float HeightScale;
 uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
 uniform mat3 MV3x3;
 uniform vec3 LightPosition_worldspace;
 
+float sampleHeightMap() {
+  vec4 sampleNormalised = texture(HeightMapTextureSampler, vertexUV);
+  uvec4 sample = uvec4(sampleNormalised * 255);
+  float height = float(sample.r << 16 | sample.g << 8 | sample.b);
+  return height * HeightScale;
+}
+
 void main() {
   // Output position of the vertex, in clip space : MVP * position
   gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
+  gl_Position.y = sampleHeightMap();
 
   // Position of the vertex, in worldspace : M * position
   Position_worldspace = (M * vec4(vertexPosition_modelspace, 1)).xyz;
