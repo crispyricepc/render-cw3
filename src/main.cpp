@@ -87,6 +87,13 @@ CLIArgs processCLIArgs(int argc, char *argv[]) {
   return args;
 }
 
+void getErrors() {
+  GLenum err;
+  while ((err = glGetError()) != GL_NO_ERROR) {
+    std::cout << "Error " << err << ": " << glewGetErrorString(err) << "\n";
+  }
+}
+
 GLuint loadBMP_custom(const char *imagepath, GLenum filter_mode,
                       GLenum what_happens_at_edge, int &width, int &height) {
 
@@ -182,7 +189,7 @@ GLuint loadBMP_custom(const char *imagepath, GLenum filter_mode,
     glGenerateMipmap(GL_TEXTURE_2D);
 
   // unbind
-  glBindTexture(GL_TEXTURE_2D, -1);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   // Return the ID of the texture we just created
   return textureID;
@@ -640,12 +647,10 @@ int main(int argc, char *argv[]) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, HeightMapTexture);
     glUniform1i(HeightMapTexutreID, 0);
-    glBindTexture(GL_TEXTURE_2D, -1);
     // Diffuse
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, DiffuseTexture);
     glUniform1i(DiffuseTextureID, 1);
-    glBindTexture(GL_TEXTURE_2D, -1);
 
     // Get a handle for our uniforms
     GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
