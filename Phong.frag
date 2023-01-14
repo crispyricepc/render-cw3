@@ -11,7 +11,7 @@ in vec3 Normal_cameraspace;
 out vec3 color;
 
 // Values that stay constant for the whole mesh.
-location(binding = 1) uniform sampler2D DiffuseTextureSampler;
+uniform sampler2D DiffuseTextureSampler;
 uniform mat4 V;
 uniform mat4 M;
 uniform mat3 MV3x3;
@@ -26,8 +26,7 @@ void main() {
   float shininess = 1;
 
   // Material properties
-  vec3 MaterialDiffuseColor =
-      texture(DiffuseTextureSampler, vec2(UV.x, UV.y)).rgb;
+  vec3 MaterialDiffuseColor = texture(DiffuseTextureSampler, vec2(UV.x, UV.y)).rgb;
   vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1) * MaterialDiffuseColor;
   vec3 MaterialSpecularColor = vec3(1, 1, 1);
 

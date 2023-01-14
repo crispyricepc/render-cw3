@@ -34,7 +34,7 @@ float sampleHeightMap() {
 void main() {
   // Output position of the vertex, in clip space : MVP * position
   vec3 vertexPosition_displaced = vertexPosition_modelspace;
-  vertexPosition_displaced.y = sampleHeightMap();
+  // vertexPosition_displaced.y = sampleHeightMap();
   gl_Position = MVP * vec4(vertexPosition_displaced, 1);
 
   // Position of the vertex, in worldspace : M * position

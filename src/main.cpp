@@ -559,8 +559,8 @@ void LoadTextures(const std::string &imagePath,
   int w, h;
   DiffuseTexture = loadBMP_custom(imagePath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
                                   GL_MIRRORED_REPEAT, w, h);
-  HeightMapTexture = loadBMP_custom(
-      heightMapPath.c_str(), GL_LINEAR_MIPMAP_LINEAR, GL_MIRRORED_REPEAT, w, h);
+  HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_LINEAR,
+                                    GL_MIRRORED_REPEAT, w, h);
 }
 
 void UnloadTextures() {
@@ -637,10 +637,8 @@ int main(int argc, char *argv[]) {
     // First pass: Base mesh
     glUseProgram(programID);
 
-    GLuint HeightMapTexutreID =
-        glGetUniformLocation(programID, "HeightMapTextureSampler");
-    GLuint DiffuseTextureID =
-        glGetUniformLocation(programID, "DiffuseTextureSampler");
+    GLuint HeightMapTexutreID = glGetUniformLocation(programID, "HeightMapTextureSampler");
+    GLuint DiffuseTextureID = glGetUniformLocation(programID, "DiffuseTextureSampler");
 
     // Set textures
     // Heightmap
@@ -658,8 +656,7 @@ int main(int argc, char *argv[]) {
     GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
     GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
     GLuint ModelView3x3MatrixID = glGetUniformLocation(programID, "MV3x3");
-    GLuint LightID =
-        glGetUniformLocation(programID, "LightPosition_worldspace");
+    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // Send our transformation to the currently bound shader,
     glUniform1f(HeightScaleID, m_scale);
