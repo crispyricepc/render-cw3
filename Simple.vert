@@ -27,14 +27,18 @@ uniform vec3 LightPosition_worldspace;
 float sampleHeightMap() {
   vec4 sampleNormalised = texture(HeightMapTextureSampler, vertexUV);
   uvec4 sample = uvec4(sampleNormalised * 255);
-  float height = float(sample.r << 16 | sample.g << 8 | sample.b);
+  // Sample the raw height value
+  float rawHeight = float(sample.r << 16 | sample.g << 8 | sample.b);
+
+  // Bring into a more acceptible range (2^16 = 65536)
+  float height = (rawHeight / 65536.0) * 2.0 - 1.0;
   return height * HeightScale;
 }
 
 void main() {
   // Output position of the vertex, in clip space : MVP * position
   vec3 vertexPosition_displaced = vertexPosition_modelspace;
-  // vertexPosition_displaced.y = sampleHeightMap();
+  vertexPosition_displaced.y = sampleHeightMap();
   gl_Position = MVP * vec4(vertexPosition_displaced, 1);
 
   // Position of the vertex, in worldspace : M * position
