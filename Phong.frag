@@ -20,6 +20,34 @@ uniform mat4 M;
 uniform mat3 MV3x3;
 uniform vec3 LightPosition_worldspace;
 
+vec3 getTextureAtHeight(float height) {
+  // Lowest band, just return the first texture
+  if (height < 7) {
+    return texture(TextureASampler, UV).rgb;
+  }
+
+  // Transition band, mix the two textures
+  if (height < 10) {
+    float mixFactor = (height - 7) / (10 - 7);
+    return mix(texture(TextureASampler, UV).rgb, texture(TextureBSampler, UV).rgb,
+               mixFactor);
+  }
+
+  // Again, below 14, just return the second texture
+  if (height < 14) {
+    return texture(TextureBSampler, UV).rgb;
+  }
+
+  // Transition between B and C
+  if (height < 17) {
+    float mixFactor = (height - 14) / (17 - 14);
+    return mix(texture(TextureBSampler, UV).rgb, texture(TextureCSampler, UV).rgb,
+               mixFactor);
+  }
+
+  return texture(TextureCSampler, UV).rgb;
+}
+
 void main() {
 
   // Some properties
@@ -29,7 +57,7 @@ void main() {
   float shininess = 1;
 
   // Material properties
-  vec3 MaterialDiffuseColor = texture(TextureASampler, vec2(UV.x, UV.y)).rgb;
+  vec3 MaterialDiffuseColor = getTextureAtHeight(Position_worldspace.y);
   vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1) * MaterialDiffuseColor;
   vec3 MaterialSpecularColor = vec3(1, 1, 1);
 

@@ -658,14 +658,15 @@ int main(int argc, char *argv[]) {
     glUniform1i(HeightMapTexutreID, 0);
 
     // Diffuse textures
-    GLuint textureNum = 1;
-    for (auto [id, tex] : {std::make_tuple(TextureAID, TextureA),
-                           std::make_tuple(TextureBID, TextureB),
-                           std::make_tuple(TextureCID, TextureC)}) {
-      glActiveTexture(GL_TEXTURE0 + textureNum++);
-      glBindTexture(GL_TEXTURE_2D, tex);
-      glUniform1i(id, textureNum);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, TextureA);
+    glUniform1i(TextureAID, 1);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, TextureB);
+    glUniform1i(TextureBID, 2);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, TextureC);
+    glUniform1i(TextureCID, 3);
 
     // Get a handle for our uniforms
     GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
