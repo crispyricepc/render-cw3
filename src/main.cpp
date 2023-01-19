@@ -563,11 +563,11 @@ void LoadTextures(const std::string &texAPath,
   // Load the texture
   int w, h;
   TextureA = loadBMP_custom(texAPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
-                            GL_REPEAT, w, h);
+                            GL_MIRRORED_REPEAT, w, h);
   TextureB = loadBMP_custom(texBPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
-                            GL_REPEAT, w, h);
+                            GL_MIRRORED_REPEAT, w, h);
   TextureC = loadBMP_custom(texCPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
-                            GL_REPEAT, w, h);
+                            GL_MIRRORED_REPEAT, w, h);
   HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_LINEAR,
                                     GL_MIRRORED_REPEAT, w, h);
   heightMapUVStepSize = glm::vec2(1.0f / float(w), 1.0f / float(h));
