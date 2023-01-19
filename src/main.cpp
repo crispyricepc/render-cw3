@@ -36,7 +36,9 @@ GLFWwindow *window;
 GLuint programID;
 
 // Textures
-GLuint DiffuseTexture;
+GLuint TextureA;
+GLuint TextureB;
+GLuint TextureC;
 GLuint HeightMapTexture;
 
 // Model
@@ -54,11 +56,15 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
+glm::vec2 heightMapUVStepSize;
+
 // Processing command line arguments
 
 struct CLIArgs {
   std::string modelPath = "";
-  std::string texturePath = "banana.bmp";
+  std::string textureA = "grass.bmp";
+  std::string textureB = "rocks.bmp";
+  std::string textureC = "snow.bmp";
   std::string heightMapPath = "";
 };
 CLIArgs processCLIArgs(int argc, char *argv[]) {
@@ -67,12 +73,6 @@ CLIArgs processCLIArgs(int argc, char *argv[]) {
   for (int i = 1; i < argc; i++) {
     if (argv[i] == std::string("-m")) {
       args.modelPath = argv[i + 1];
-      i++;
-      continue;
-    }
-
-    if (argv[i] == std::string("-t")) {
-      args.texturePath = argv[i + 1];
       i++;
       continue;
     }
@@ -553,18 +553,27 @@ void UnloadModel() {
   glDeleteVertexArrays(1, &VertexArrayID);
 }
 
-void LoadTextures(const std::string &imagePath,
+void LoadTextures(const std::string &texAPath,
+                  const std::string &texBPath,
+                  const std::string &texCPath,
                   const std::string &heightMapPath) {
   // Load the texture
   int w, h;
-  DiffuseTexture = loadBMP_custom(imagePath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
-                                  GL_MIRRORED_REPEAT, w, h);
+  TextureA = loadBMP_custom(texAPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
+                            GL_REPEAT, w, h);
+  TextureB = loadBMP_custom(texBPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
+                            GL_REPEAT, w, h);
+  TextureC = loadBMP_custom(texCPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
+                            GL_REPEAT, w, h);
   HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_LINEAR,
                                     GL_MIRRORED_REPEAT, w, h);
+  heightMapUVStepSize = glm::vec2(1.0f / float(w), 1.0f / float(h));
 }
 
 void UnloadTextures() {
-  glDeleteTextures(1, &DiffuseTexture);
+  glDeleteTextures(1, &TextureA);
+  glDeleteTextures(1, &TextureB);
+  glDeleteTextures(1, &TextureC);
   glDeleteTextures(1, &HeightMapTexture);
 }
 
@@ -589,7 +598,7 @@ int main(int argc, char *argv[]) {
 
   // Use our shader
 
-  LoadTextures(args.texturePath, args.heightMapPath);
+  LoadTextures(args.textureA, args.textureB, args.textureC, args.heightMapPath);
   LoadModel(args.modelPath, GL_TRIANGLES);
 
   // Our light position is fixed
@@ -638,19 +647,28 @@ int main(int argc, char *argv[]) {
     glUseProgram(programID);
 
     GLuint HeightMapTexutreID = glGetUniformLocation(programID, "HeightMapTextureSampler");
-    GLuint DiffuseTextureID = glGetUniformLocation(programID, "DiffuseTextureSampler");
+    GLuint TextureAID = glGetUniformLocation(programID, "TextureASampler");
+    GLuint TextureBID = glGetUniformLocation(programID, "TextureBSampler");
+    GLuint TextureCID = glGetUniformLocation(programID, "TextureCSampler");
 
     // Set textures
     // Heightmap
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, HeightMapTexture);
     glUniform1i(HeightMapTexutreID, 0);
-    // Diffuse
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, DiffuseTexture);
-    glUniform1i(DiffuseTextureID, 1);
+
+    // Diffuse textures
+    GLuint textureNum = 1;
+    for (auto [id, tex] : {std::make_tuple(TextureAID, TextureA),
+                           std::make_tuple(TextureBID, TextureB),
+                           std::make_tuple(TextureCID, TextureC)}) {
+      glActiveTexture(GL_TEXTURE0 + textureNum++);
+      glBindTexture(GL_TEXTURE_2D, tex);
+      glUniform1i(id, textureNum);
+    }
 
     // Get a handle for our uniforms
+    GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
     GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
@@ -659,6 +677,7 @@ int main(int argc, char *argv[]) {
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // Send our transformation to the currently bound shader,
+    glUniform2f(HeightMapUVStepSizeID, heightMapUVStepSize.x, heightMapUVStepSize.y);
     glUniform1f(HeightScaleID, m_scale);
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);

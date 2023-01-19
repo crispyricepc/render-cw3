@@ -6,12 +6,15 @@ in vec3 Position_worldspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
 in vec3 Normal_cameraspace;
+in vec3 Normal_modelspace;
 
 // Ouput data
 out vec3 color;
 
 // Values that stay constant for the whole mesh.
-uniform sampler2D DiffuseTextureSampler;
+uniform sampler2D TextureASampler;
+uniform sampler2D TextureBSampler;
+uniform sampler2D TextureCSampler;
 uniform mat4 V;
 uniform mat4 M;
 uniform mat3 MV3x3;
@@ -26,7 +29,7 @@ void main() {
   float shininess = 1;
 
   // Material properties
-  vec3 MaterialDiffuseColor = texture(DiffuseTextureSampler, vec2(UV.x, UV.y)).rgb;
+  vec3 MaterialDiffuseColor = texture(TextureASampler, vec2(UV.x, UV.y)).rgb;
   vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1) * MaterialDiffuseColor;
   vec3 MaterialSpecularColor = vec3(1, 1, 1);
 
@@ -56,10 +59,11 @@ void main() {
   vec3 specular =
       MaterialSpecularColor * LightPower * cosB; //(distance*distance);
 
-  color =
-      // Ambient : simulates indirect lighting
-      MaterialAmbientColor +
-      // Diffuse : "color" of the object
-      diffuse + specular;
-  // Specular : reflective highlight, like a mirror
+  // /* Uncomment to show normals instead */
+  // color = Normal_modelspace;
+  // return;
+
+  color = MaterialAmbientColor + // Ambient : simulates indirect lighting
+          diffuse +              // Diffuse : "color" of the object
+          specular;              // Specular : reflective highlight, like a mirror
 }
