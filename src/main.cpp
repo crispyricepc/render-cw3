@@ -491,6 +491,9 @@ void LoadModel(string path, GLint mode) {
           n++;
         }
       }
+    } else if (mode == GL_PATCHES) {
+      std::cerr << "Can't do patches yet" << endl;
+      return;
     } else {
       std::cout << "Can't process that mode..." << endl;
       return;
@@ -597,12 +600,13 @@ int main(int argc, char *argv[]) {
   // Cull triangles which normal is not towards the camera
   glEnable(GL_CULL_FACE);
 
-  LoadShaders(programID, "Simple.vert", "Phong.frag");
+  LoadShaders(programID, "Simple.vert", "Phong.frag",
+              "Control.tesc", "Eval.tese");
 
   // Use our shader
 
   LoadTextures(args.textureA, args.textureB, args.textureC, args.heightMapPath);
-  LoadModel(args.modelPath, GL_TRIANGLES);
+  LoadModel(args.modelPath, GL_PATCHES);
 
   // Our light position is fixed
   glm::vec3 lightPos = glm::vec3(0, -0.5, -0.5);
@@ -619,7 +623,8 @@ int main(int argc, char *argv[]) {
     }
     if (reloadShaders && glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
       UnloadShaders();
-      LoadShaders(programID, "Simple.vert", "Phong.frag");
+      LoadShaders(programID, "Simple.vert", "Phong.frag",
+                  "Control.tesc", "Eval.tese");
       reloadShaders = false;
     }
 
