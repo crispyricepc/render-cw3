@@ -15,6 +15,10 @@ out vec3 color;
 uniform sampler2D TextureASampler;
 uniform sampler2D TextureBSampler;
 uniform sampler2D TextureCSampler;
+uniform float HeightScale;
+uniform float BandA;
+uniform float BandB;
+uniform float BandSizes;
 uniform mat4 V;
 uniform mat4 M;
 uniform mat3 MV3x3;
@@ -22,29 +26,30 @@ uniform vec3 LightPosition_worldspace;
 
 vec3 getTextureAtHeight(float height) {
   // Lowest band, just return the first texture
-  if (height < 7) {
+  if (height < BandA * HeightScale) {
     return texture(TextureASampler, UV).rgb;
   }
 
   // Transition band, mix the two textures
-  if (height < 10) {
-    float mixFactor = (height - 7) / (10 - 7);
+  if (height < (BandA + BandSizes) * HeightScale) {
+    float mixFactor = (height - (BandA * HeightScale)) / (BandSizes * HeightScale);
     return mix(texture(TextureASampler, UV).rgb, texture(TextureBSampler, UV).rgb,
                mixFactor);
   }
 
-  // Again, below 14, just return the second texture
-  if (height < 14) {
+  // Below BandB, just return the second texture
+  if (height < BandB * HeightScale) {
     return texture(TextureBSampler, UV).rgb;
   }
 
   // Transition between B and C
-  if (height < 17) {
-    float mixFactor = (height - 14) / (17 - 14);
+  if (height < (BandB + BandSizes) * HeightScale) {
+    float mixFactor = (height - (BandB * HeightScale)) / (BandSizes * HeightScale);
     return mix(texture(TextureBSampler, UV).rgb, texture(TextureCSampler, UV).rgb,
                mixFactor);
   }
 
+  // Above BandC, just return the third texture
   return texture(TextureCSampler, UV).rgb;
 }
 

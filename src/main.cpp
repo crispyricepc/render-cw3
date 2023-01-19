@@ -27,7 +27,10 @@ static const int window_width = 1920;
 static const int window_height = 1080;
 
 static const int n_points = 200;
-static const float m_scale = 0.5f;
+static const float m_scale = 0.1f;
+static const float m_band_a = 14;
+static const float m_band_b = 25;
+static const float m_band_sizes = 4;
 
 // Variables
 GLFWwindow *window;
@@ -671,6 +674,9 @@ int main(int argc, char *argv[]) {
     // Get a handle for our uniforms
     GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
     GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
+    GLuint BandAID = glGetUniformLocation(programID, "BandA");
+    GLuint BandBID = glGetUniformLocation(programID, "BandB");
+    GLuint BandSizesID = glGetUniformLocation(programID, "BandSizes");
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
     GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
@@ -680,6 +686,9 @@ int main(int argc, char *argv[]) {
     // Send our transformation to the currently bound shader,
     glUniform2f(HeightMapUVStepSizeID, heightMapUVStepSize.x, heightMapUVStepSize.y);
     glUniform1f(HeightScaleID, m_scale);
+    glUniform1f(BandAID, m_band_a);
+    glUniform1f(BandBID, m_band_b);
+    glUniform1f(BandSizesID, m_band_sizes);
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
     glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
