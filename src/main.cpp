@@ -492,7 +492,25 @@ void LoadModel(string path, GLint mode) {
         }
       }
     } else if (mode == GL_PATCHES) {
-      std::cerr << "Can't do patches yet" << endl;
+      // Patches are Quads with 4 vertices
+      int n = 0;
+      for (int i = 0; i < n_points; i++) {
+        for (int j = 0; j < n_points; j++) {
+          if (j != n_points - 1 && i != n_points - 1) {
+            // There are now 4 vertices per patch
+            int topLeft = n;
+            int topRight = topLeft + 1;
+            int bottomLeft = topLeft + n_points;
+            int bottomRight = bottomLeft + 1;
+            // Spiral clockwise
+            indices.push_back(topLeft);
+            indices.push_back(topRight);
+            indices.push_back(bottomRight);
+            indices.push_back(bottomLeft);
+          }
+          n++;
+        }
+      }
       return;
     } else {
       std::cout << "Can't process that mode..." << endl;
@@ -710,7 +728,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Draw the triangles !
-    glDrawElements(GL_TRIANGLES,            // mode
+    glDrawElements(GL_PATCHES,              // mode
                    (GLsizei)indices.size(), // count
                    GL_UNSIGNED_INT,         // type
                    (void *)0                // element array buffer offset

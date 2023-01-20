@@ -9,6 +9,8 @@
     "export-compile-commands": true,
     "external": true,
     "lib": true,
-    "subprojects": true
+    "subprojects": true,
+    "**/Makefile": true,
+    "premake5.lua": true,
   },
 }
