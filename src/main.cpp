@@ -618,8 +618,14 @@ int main(int argc, char *argv[]) {
   // Cull triangles which normal is not towards the camera
   glEnable(GL_CULL_FACE);
 
-  LoadShaders(programID, "Simple.vert", "Phong.frag",
-              "Control.tesc", "Eval.tese");
+  LoadShaders(programID,
+              "src/shaders/Simple.vert",
+              "src/shaders/Simple.frag",
+              "src/shaders/Simple.tesc",
+              "src/shaders/Simple.tese");
+
+  // Tesselation patches (quads)
+  glPatchParameteri(GL_PATCH_VERTICES, 4);
 
   // Use our shader
 
