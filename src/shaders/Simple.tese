@@ -49,15 +49,15 @@ vec3 sampleNormalMap(vec2 sampleUV) {
   return normalize(vec3(Nx, 1, Nz));
 }
 
-// Sorry sir I would make this multi line if Apple decided not to deprecate OpenGL
-#define INTERPOLATE_FUNCTION(gentype) gentype interpolate(gentype v0, gentype v1, gentype v2, gentype v3) { gentype a = mix(v0, v1, gl_TessCoord.x); gentype b = mix(v2, v3, gl_TessCoord.x); return mix(a, b, gl_TessCoord.y); }
+// I would make this multi line if Apple decided not to deprecate OpenGL
+#define INTERPOLATE_FUNCTION(gentype) gentype interpolate(gentype v0, gentype v1, gentype v2, gentype v3) { gentype a = mix(v0, v1, gl_TessCoord.x); gentype b = mix(v2, v3, gl_TessCoord.x); return mix(a, b, gl_TessCoord.y);}
 INTERPOLATE_FUNCTION(vec2)
 INTERPOLATE_FUNCTION(vec3)
 INTERPOLATE_FUNCTION(vec4)
 
 void main() {
   vec4 interpPos = interpolate(gl_in[0].gl_Position, gl_in[1].gl_Position,
-                            gl_in[2].gl_Position, gl_in[3].gl_Position);
+                               gl_in[2].gl_Position, gl_in[3].gl_Position);
   UV = interpolate(controlUV[0], controlUV[1], controlUV[2], controlUV[3]);
 
   vec3 vertexPosition_displaced = interpPos.xyz;
