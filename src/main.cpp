@@ -503,10 +503,10 @@ void LoadModel(string path, GLint mode) {
             int bottomLeft = topLeft + n_points;
             int bottomRight = bottomLeft + 1;
             // Anticlockwise
+            indices.push_back(topRight);
             indices.push_back(topLeft);
             indices.push_back(bottomLeft);
             indices.push_back(bottomRight);
-            indices.push_back(topRight);
           }
           n++;
         }
@@ -646,8 +646,8 @@ int main(int argc, char *argv[]) {
     }
     if (reloadShaders && glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
       UnloadShaders();
-      LoadShaders(programID, "Simple.vert", "Phong.frag",
-                  "Control.tesc", "Eval.tese");
+      LoadShaders(programID, "src/shaders/Simple.vert", "src/shaders/Simple.frag",
+                  "src/shaders/Simple.tesc", "src/shaders/Simple.tese");
       reloadShaders = false;
     }
 
