@@ -502,16 +502,15 @@ void LoadModel(string path, GLint mode) {
             int topRight = topLeft + 1;
             int bottomLeft = topLeft + n_points;
             int bottomRight = bottomLeft + 1;
-            // Spiral clockwise
+            // Anticlockwise
             indices.push_back(topLeft);
-            indices.push_back(topRight);
-            indices.push_back(bottomRight);
             indices.push_back(bottomLeft);
+            indices.push_back(bottomRight);
+            indices.push_back(topRight);
           }
           n++;
         }
       }
-      return;
     } else {
       std::cout << "Can't process that mode..." << endl;
       return;
@@ -630,7 +629,7 @@ int main(int argc, char *argv[]) {
   // Use our shader
 
   LoadTextures(args.textureA, args.textureB, args.textureC, args.heightMapPath);
-  LoadModel(args.modelPath, GL_PATCHES);
+  LoadModel(args.modelPath, GL_TRIANGLES);
 
   // Our light position is fixed
   glm::vec3 lightPos = glm::vec3(0, -0.5, -0.5);
