@@ -15,6 +15,9 @@ out vec3 color;
 uniform sampler2D TextureASampler;
 uniform sampler2D TextureBSampler;
 uniform sampler2D TextureCSampler;
+uniform sampler2D TextureASpecularMapSampler;
+uniform sampler2D TextureBSpecularMapSampler;
+uniform sampler2D TextureCSpecularMapSampler;
 uniform float HeightScale;
 uniform float BandA;
 uniform float BandB;
@@ -24,33 +27,33 @@ uniform mat4 M;
 uniform mat3 MV3x3;
 uniform vec3 LightPosition_worldspace;
 
-vec3 getTextureAtHeight(float height) {
+vec3 getTextureAtHeight(sampler2D sA, sampler2D sB, sampler2D sC, float height) {
   // Lowest band, just return the first texture
   if (height < BandA * HeightScale) {
-    return texture(TextureASampler, UV).rgb;
+    return texture(sA, UV).rgb;
   }
 
   // Transition band, mix the two textures
   if (height < (BandA + BandSizes) * HeightScale) {
     float mixFactor = (height - (BandA * HeightScale)) / (BandSizes * HeightScale);
-    return mix(texture(TextureASampler, UV).rgb, texture(TextureBSampler, UV).rgb,
+    return mix(texture(sA, UV).rgb, texture(sB, UV).rgb,
                mixFactor);
   }
 
   // Below BandB, just return the second texture
   if (height < BandB * HeightScale) {
-    return texture(TextureBSampler, UV).rgb;
+    return texture(sB, UV).rgb;
   }
 
   // Transition between B and C
   if (height < (BandB + BandSizes) * HeightScale) {
     float mixFactor = (height - (BandB * HeightScale)) / (BandSizes * HeightScale);
-    return mix(texture(TextureBSampler, UV).rgb, texture(TextureCSampler, UV).rgb,
+    return mix(texture(sB, UV).rgb, texture(sC, UV).rgb,
                mixFactor);
   }
 
   // Above BandC, just return the third texture
-  return texture(TextureCSampler, UV).rgb;
+  return texture(sC, UV).rgb;
 }
 
 void main() {
@@ -62,9 +65,13 @@ void main() {
   float shininess = 1;
 
   // Material properties
-  vec3 MaterialDiffuseColor = getTextureAtHeight(Position_worldspace.y);
+  vec3 MaterialDiffuseColor = getTextureAtHeight(TextureASampler, TextureBSampler, TextureCSampler,
+                                                 Position_worldspace.y);
   vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1) * MaterialDiffuseColor;
-  vec3 MaterialSpecularColor = vec3(1, 1, 1);
+  vec3 MaterialSpecularColor = getTextureAtHeight(TextureASpecularMapSampler,
+                                                  TextureBSpecularMapSampler,
+                                                  TextureCSpecularMapSampler,
+                                                  Position_worldspace.y);
 
   // Distance to the light
   // float distance = length( LightPosition_worldspace - Position_worldspace );
@@ -89,8 +96,7 @@ void main() {
   float cosB = clamp(dot(n, B), 0, 1);
   cosB = clamp(pow(cosB, shininess), 0, 1);
   cosB = cosB * cosTheta * (shininess + 2) / (2 * radians(180.0f));
-  vec3 specular =
-      MaterialSpecularColor * LightPower * cosB; //(distance*distance);
+  vec3 specular = MaterialSpecularColor * LightPower * cosB; //(distance*distance);
 
   // /* Uncomment to show normals instead */
   // color = Normal_modelspace;
@@ -98,6 +104,9 @@ void main() {
 
   // /* Uncomment to show UVs instead */
   // color = vec3(UV.x, UV.y, 0);
+  // return;
+
+  // color = specular;
   // return;
 
   color = MaterialAmbientColor + // Ambient : simulates indirect lighting

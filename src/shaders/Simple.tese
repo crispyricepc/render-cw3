@@ -52,10 +52,11 @@ vec3 sampleNormalMap(vec2 sampleUV) {
 
   // Magic sobel filter shenanigans
   return normalize(vec3(
-    scale * -(p02 - p00 + 2 * (p12 - p10) + p22 - p20),
-    1,
-    scale * -(p20 - p00 + 2 * (p21 - p01) + p22 - p02)
-  ) * 0.5 + 0.5);
+                       scale * -(p02 - p00 + 2 * (p12 - p10) + p22 - p20),
+                       1,
+                       scale * -(p20 - p00 + 2 * (p21 - p01) + p22 - p02)) *
+                       0.5 +
+                   0.5);
 }
 
 #define INTERPOLATE_FUNCTION(gentype)                                   \

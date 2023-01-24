@@ -40,8 +40,11 @@ GLuint programID;
 
 // Textures
 GLuint TextureA;
+GLuint TextureASpecularMap;
 GLuint TextureB;
+GLuint TextureBSpecularMap;
 GLuint TextureC;
+GLuint TextureCSpecularMap;
 GLuint HeightMapTexture;
 
 // Model
@@ -66,9 +69,9 @@ glm::vec2 heightMapUVStepSize;
 
 struct CLIArgs {
   std::string modelPath = "";
-  std::string textureA = "grass.bmp";
-  std::string textureB = "rocks.bmp";
-  std::string textureC = "snow.bmp";
+  std::string textureA = "grass";
+  std::string textureB = "rocks";
+  std::string textureC = "snow";
   std::string heightMapPath = "";
 };
 CLIArgs processCLIArgs(int argc, char *argv[]) {
@@ -576,19 +579,33 @@ void UnloadModel() {
   glDeleteVertexArrays(1, &VertexArrayID);
 }
 
-void LoadTextures(const std::string &texAPath,
-                  const std::string &texBPath,
-                  const std::string &texCPath,
+void LoadTextures(const std::string &texAName,
+                  const std::string &texBName,
+                  const std::string &texCName,
                   const std::string &heightMapPath) {
   // Load the texture
   int w, h;
-  TextureA = loadBMP_custom(texAPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
+  TextureA = loadBMP_custom((texAName + ".bmp").c_str(),
+                            GL_LINEAR_MIPMAP_LINEAR,
                             GL_MIRRORED_REPEAT, w, h);
-  TextureB = loadBMP_custom(texBPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
+  TextureASpecularMap = loadBMP_custom((texAName + "-s.bmp").c_str(),
+                                       GL_LINEAR_MIPMAP_LINEAR,
+                                       GL_MIRRORED_REPEAT, w, h);
+  TextureB = loadBMP_custom((texBName + ".bmp").c_str(),
+                            GL_LINEAR_MIPMAP_LINEAR,
                             GL_MIRRORED_REPEAT, w, h);
-  TextureC = loadBMP_custom(texCPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
+  TextureBSpecularMap = loadBMP_custom((texBName + "-s.bmp").c_str(),
+                                       GL_LINEAR_MIPMAP_LINEAR,
+                                       GL_MIRRORED_REPEAT, w, h);
+  TextureC = loadBMP_custom((texCName + ".bmp").c_str(),
+                            GL_LINEAR_MIPMAP_LINEAR,
                             GL_MIRRORED_REPEAT, w, h);
-  HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_NEAREST,
+  TextureCSpecularMap = loadBMP_custom((texCName + "-s.bmp").c_str(),
+                                       GL_LINEAR_MIPMAP_LINEAR,
+                                       GL_MIRRORED_REPEAT, w, h);
+
+  HeightMapTexture = loadBMP_custom(heightMapPath.c_str(),
+                                    GL_NEAREST, // Nearest neighbour so we don't get muddy pixels
                                     GL_MIRRORED_REPEAT, w, h);
   heightMapSize = glm::ivec2(w, h);
   heightMapUVStepSize = glm::vec2(1.0f / float(w), 1.0f / float(h));
@@ -683,6 +700,9 @@ int main(int argc, char *argv[]) {
     GLuint TextureAID = glGetUniformLocation(programID, "TextureASampler");
     GLuint TextureBID = glGetUniformLocation(programID, "TextureBSampler");
     GLuint TextureCID = glGetUniformLocation(programID, "TextureCSampler");
+    GLuint TextureASpecularMapID = glGetUniformLocation(programID, "TextureASpecularMapSampler");
+    GLuint TextureBSpecularMapID = glGetUniformLocation(programID, "TextureBSpecularMapSampler");
+    GLuint TextureCSpecularMapID = glGetUniformLocation(programID, "TextureCSpecularMapSampler");
 
     // Set textures
     // Heightmap
@@ -700,6 +720,17 @@ int main(int argc, char *argv[]) {
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, TextureC);
     glUniform1i(TextureCID, 3);
+
+    // Specular maps
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, TextureASpecularMap);
+    glUniform1i(TextureASpecularMapID, 4);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, TextureBSpecularMap);
+    glUniform1i(TextureBSpecularMapID, 5);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, TextureCSpecularMap);
+    glUniform1i(TextureCSpecularMapID, 6);
 
     // Get a handle for our uniforms
     GLuint HeightMapSizeID = glGetUniformLocation(programID, "HeightMapSize");
