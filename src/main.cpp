@@ -27,7 +27,7 @@ static const int window_width = 1920;
 static const int window_height = 1080;
 
 static const int n_points = 256;
-static const float m_scale = 0.5f;
+static const float m_scale = 0.1f;
 static const float m_band_a = 14;
 static const float m_band_b = 25;
 static const float m_band_sizes = 4;
