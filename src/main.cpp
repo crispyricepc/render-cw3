@@ -27,7 +27,7 @@ static const int window_width = 1920;
 static const int window_height = 1080;
 
 static const int n_points = 256;
-static const float m_scale = 0.1f;
+static const float m_scale = 0.5f;
 static const float m_band_a = 14;
 static const float m_band_b = 25;
 static const float m_band_sizes = 4;
@@ -59,6 +59,7 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
+glm::ivec2 heightMapSize;
 glm::vec2 heightMapUVStepSize;
 
 // Processing command line arguments
@@ -589,6 +590,7 @@ void LoadTextures(const std::string &texAPath,
                             GL_MIRRORED_REPEAT, w, h);
   HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_NEAREST,
                                     GL_MIRRORED_REPEAT, w, h);
+  heightMapSize = glm::ivec2(w, h);
   heightMapUVStepSize = glm::vec2(1.0f / float(w), 1.0f / float(h));
 }
 
@@ -700,6 +702,7 @@ int main(int argc, char *argv[]) {
     glUniform1i(TextureCID, 3);
 
     // Get a handle for our uniforms
+    GLuint HeightMapSizeID = glGetUniformLocation(programID, "HeightMapSize");
     GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
     GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
     GLuint BandAID = glGetUniformLocation(programID, "BandA");
@@ -712,6 +715,7 @@ int main(int argc, char *argv[]) {
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // Send our transformation to the currently bound shader,
+    glUniform2i(HeightMapSizeID, heightMapSize.x, heightMapSize.y);
     glUniform2f(HeightMapUVStepSizeID, heightMapUVStepSize.x, heightMapUVStepSize.y);
     glUniform1f(HeightScaleID, m_scale);
     glUniform1f(BandAID, m_band_a);

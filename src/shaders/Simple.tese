@@ -14,6 +14,7 @@ out vec3 Normal_cameraspace;
 out vec3 Normal_modelspace;
 
 uniform sampler2D HeightMapTextureSampler;
+uniform ivec2 HeightMapSize;
 uniform vec2 HeightMapUVStepSize;
 uniform float HeightScale;
 uniform mat4 MVP;
@@ -22,28 +23,41 @@ uniform mat4 V;
 uniform mat3 MV3x3;
 uniform vec3 LightPosition_worldspace;
 
-float sampleHeightMap(vec2 sampleUV) {
-  vec4 sampleNormalised = texture(HeightMapTextureSampler, sampleUV);
-  uvec4 s = uvec4(sampleNormalised * 255);
-  // Sample the raw height value
+float rgbToFloat(vec3 rgb) {
+  uvec3 s = uvec3(rgb * 255);
   return float(s.r << 16 | s.g << 8 | s.b) / 255.0;
 }
 
-vec3 sampleNormalMap(vec2 sampleUV) {
-  vec2 xStep = vec2(HeightMapUVStepSize.x, 0);
-  float leftHeight = sampleHeightMap(sampleUV - xStep);
-  float rightHeight = sampleHeightMap(sampleUV + xStep);
-  vec3 xNormal = vec3(1, 0, rightHeight - leftHeight);
-
-  vec2 yStep = vec2(0, HeightMapUVStepSize.y);
-  float topHeight = sampleHeightMap(sampleUV - yStep);
-  float bottomHeight = sampleHeightMap(sampleUV + yStep);
-  vec3 yNormal = vec3(0, 1, bottomHeight - topHeight);
-
-  return normalize(cross(xNormal, yNormal));
+float heightAtPixel(ivec2 s) {
+  return rgbToFloat(
+             texelFetch(HeightMapTextureSampler, s, 0).rgb) *
+             0.5 +
+         0.5;
 }
 
-// I would make this multi line if Apple decided not to deprecate OpenGL
+vec3 sampleNormalMap(vec2 sampleUV) {
+  // Use a Sobel filter to calculate the normal
+  ivec2 sampleCoords = ivec2(sampleUV * HeightMapSize);
+  float scale = HeightScale;
+
+  float p00 = heightAtPixel(sampleCoords + ivec2(-1, -1));
+  float p01 = heightAtPixel(sampleCoords + ivec2(0, -1));
+  float p02 = heightAtPixel(sampleCoords + ivec2(1, -1));
+  float p10 = heightAtPixel(sampleCoords + ivec2(-1, 0));
+  // float p11 = Center pixel, don't sample
+  float p12 = heightAtPixel(sampleCoords + ivec2(1, 0));
+  float p20 = heightAtPixel(sampleCoords + ivec2(-1, 1));
+  float p21 = heightAtPixel(sampleCoords + ivec2(0, 1));
+  float p22 = heightAtPixel(sampleCoords + ivec2(1, 1));
+
+  // Magic sobel filter shenanigans
+  return normalize(vec3(
+    scale * -(p02 - p00 + 2 * (p12 - p10) + p22 - p20),
+    1,
+    scale * -(p20 - p00 + 2 * (p21 - p01) + p22 - p02)
+  ) * 0.5 + 0.5);
+}
+
 #define INTERPOLATE_FUNCTION(gentype)                                   \
   gentype interpolate(gentype v0, gentype v1, gentype v2, gentype v3) { \
     gentype a = mix(v0, v1, gl_TessCoord.x);                            \
@@ -66,7 +80,7 @@ void main() {
   //                                      controlNormal_modelspace[2], controlNormal_modelspace[3]);
 
   // Output position of the vertex, in clip space : MVP * position
-  float rawHeight = sampleHeightMap(UV);
+  float rawHeight = rgbToFloat(texture(HeightMapTextureSampler, UV).rgb);
   // Bring into a more acceptible range
   float height = (rawHeight / 256.0) * HeightScale;
 
