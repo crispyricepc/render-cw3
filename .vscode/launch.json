@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Debug",
       "program": "${workspaceFolder}/build/oglShaders",
-      "args": "-t grass.bmp -h mountains_height.bmp",
+      "args": "",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Meson: Build oglShaders"
     }

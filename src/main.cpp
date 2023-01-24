@@ -72,7 +72,7 @@ struct CLIArgs {
   std::string textureA = "grass";
   std::string textureB = "rocks";
   std::string textureC = "snow";
-  std::string heightMapPath = "";
+  std::string heightMapPath = "mountains_height.bmp";
 };
 CLIArgs processCLIArgs(int argc, char *argv[]) {
   CLIArgs args;
