@@ -37,6 +37,13 @@ float heightAtPixel(ivec2 s) {
 
 vec3 sampleNormalMap(vec2 sampleUV) {
   // Use a Sobel filter to calculate the normal
+  // +-----+-----+-----+
+  // | p00 | p01 | p02 |
+  // +-----+-----+-----+
+  // | p10 | p11 | p12 |
+  // +-----+-----+-----+
+  // | p20 | p21 | p22 |
+  // +-----+-----+-----+
   ivec2 sampleCoords = ivec2(sampleUV * HeightMapSize);
   float scale = HeightScale;
 
