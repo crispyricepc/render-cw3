@@ -92,8 +92,12 @@ void main() {
   vec3 specular =
       MaterialSpecularColor * LightPower * cosB; //(distance*distance);
 
-  // /* Uncomment to show normals instead */
-  // color = Normal_modelspace;
+  /* Uncomment to show normals instead */
+  color = Normal_modelspace;
+  return;
+
+  // /* Uncomment to show UVs instead */
+  // color = vec3(UV.x, UV.y, 0);
   // return;
 
   color = MaterialAmbientColor + // Ambient : simulates indirect lighting

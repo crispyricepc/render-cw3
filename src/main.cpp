@@ -26,7 +26,7 @@ using namespace glm;
 static const int window_width = 1920;
 static const int window_height = 1080;
 
-static const int n_points = 200;
+static const int n_points = 256;
 static const float m_scale = 0.1f;
 static const float m_band_a = 14;
 static const float m_band_b = 25;
@@ -502,9 +502,8 @@ void LoadModel(string path, GLint mode) {
             int topRight = topLeft + 1;
             int bottomLeft = topLeft + n_points;
             int bottomRight = bottomLeft + 1;
-            // Anticlockwise
-            indices.push_back(topRight);
             indices.push_back(topLeft);
+            indices.push_back(topRight);
             indices.push_back(bottomLeft);
             indices.push_back(bottomRight);
           }
@@ -588,7 +587,7 @@ void LoadTextures(const std::string &texAPath,
                             GL_MIRRORED_REPEAT, w, h);
   TextureC = loadBMP_custom(texCPath.c_str(), GL_LINEAR_MIPMAP_LINEAR,
                             GL_MIRRORED_REPEAT, w, h);
-  HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_LINEAR,
+  HeightMapTexture = loadBMP_custom(heightMapPath.c_str(), GL_NEAREST,
                                     GL_MIRRORED_REPEAT, w, h);
   heightMapUVStepSize = glm::vec2(1.0f / float(w), 1.0f / float(h));
 }
@@ -603,6 +602,7 @@ void UnloadTextures() {
 int main(int argc, char *argv[]) {
   // Process CLI arguments
   CLIArgs args = processCLIArgs(argc, argv);
+  const static GLenum mode = GL_PATCHES;
 
   // Initialize and create a window.
   if (initializeGLFW() != 0)
@@ -629,7 +629,7 @@ int main(int argc, char *argv[]) {
   // Use our shader
 
   LoadTextures(args.textureA, args.textureB, args.textureC, args.heightMapPath);
-  LoadModel(args.modelPath, GL_TRIANGLES);
+  LoadModel(args.modelPath, mode);
 
   // Our light position is fixed
   glm::vec3 lightPos = glm::vec3(0, -0.5, -0.5);
@@ -733,7 +733,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Draw the triangles !
-    glDrawElements(GL_PATCHES,              // mode
+    glDrawElements(mode,                    // mode
                    (GLsizei)indices.size(), // count
                    GL_UNSIGNED_INT,         // type
                    (void *)0                // element array buffer offset

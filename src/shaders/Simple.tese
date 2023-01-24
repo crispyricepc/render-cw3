@@ -1,6 +1,6 @@
 #version 410 core
 
-layout(quads, equal_spacing, ccw) in;
+layout(quads, fractional_even_spacing, ccw) in;
 
 in vec3 controlPosition_modelspace[];
 in vec2 controlUV[];
@@ -30,27 +30,26 @@ float sampleHeightMap(vec2 sampleUV) {
 }
 
 vec3 sampleNormalMap(vec2 sampleUV) {
-  float Nx = 0;
-  for (int row = -1; row <= 1; row++) {
-    float heightDiff = sampleHeightMap(sampleUV + vec2(HeightMapUVStepSize.x, row)) -
-                       sampleHeightMap(sampleUV + vec2(-HeightMapUVStepSize.x, row));
-    Nx += heightDiff;
-  }
-  Nx /= 3.0;
+  vec2 xStep = vec2(HeightMapUVStepSize.x, 0);
+  float leftHeight = sampleHeightMap(sampleUV - xStep);
+  float rightHeight = sampleHeightMap(sampleUV + xStep);
+  vec3 xNormal = vec3(1, 0, rightHeight - leftHeight);
 
-  float Nz = 0;
-  for (int col = -1; col <= 1; col++) {
-    float heightDiff = sampleHeightMap(sampleUV + vec2(col, HeightMapUVStepSize.y)) -
-                       sampleHeightMap(sampleUV + vec2(col, -HeightMapUVStepSize.y));
-    Nz += heightDiff;
-  }
-  Nz /= 3.0;
+  vec2 yStep = vec2(0, HeightMapUVStepSize.y);
+  float topHeight = sampleHeightMap(sampleUV - yStep);
+  float bottomHeight = sampleHeightMap(sampleUV + yStep);
+  vec3 yNormal = vec3(0, 1, bottomHeight - topHeight);
 
-  return normalize(vec3(Nx, 1, Nz));
+  return normalize(cross(xNormal, yNormal));
 }
 
 // I would make this multi line if Apple decided not to deprecate OpenGL
-#define INTERPOLATE_FUNCTION(gentype) gentype interpolate(gentype v0, gentype v1, gentype v2, gentype v3) { gentype a = mix(v0, v1, gl_TessCoord.x); gentype b = mix(v2, v3, gl_TessCoord.x); return mix(a, b, gl_TessCoord.y);}
+#define INTERPOLATE_FUNCTION(gentype)                                   \
+  gentype interpolate(gentype v0, gentype v1, gentype v2, gentype v3) { \
+    gentype a = mix(v0, v1, gl_TessCoord.x);                            \
+    gentype b = mix(v2, v3, gl_TessCoord.x);                            \
+    return mix(a, b, gl_TessCoord.y);                                   \
+  }
 INTERPOLATE_FUNCTION(vec2)
 INTERPOLATE_FUNCTION(vec3)
 INTERPOLATE_FUNCTION(vec4)
@@ -62,9 +61,9 @@ void main() {
 
   vec3 vertexPosition_displaced = interpPos.xyz;
   vec3 vertexNormal_displaced = sampleNormalMap(UV);
-  /* Uncomment to disable normals */
-  vertexNormal_displaced = interpolate(controlNormal_modelspace[0], controlNormal_modelspace[1],
-                                       controlNormal_modelspace[2], controlNormal_modelspace[3]);
+  // /* Uncomment to disable normals */
+  // vertexNormal_displaced = interpolate(controlNormal_modelspace[0], controlNormal_modelspace[1],
+  //                                      controlNormal_modelspace[2], controlNormal_modelspace[3]);
 
   // Output position of the vertex, in clip space : MVP * position
   float rawHeight = sampleHeightMap(UV);
