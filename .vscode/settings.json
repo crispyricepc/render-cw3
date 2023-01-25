@@ -1,16 +1,3 @@
 {
-  "files.exclude": {
-    "**/*.sln": true,
-    "**/*.vcxproj*": true,
-    "**/*.xcodeproj": true,
-    "**/*.xcworkspace": true,
-    "bin": true,
-    "compile_commands": true,
-    "export-compile-commands": true,
-    "external": true,
-    "lib": true,
-    "subprojects": true,
-    "**/Makefile": true,
-    "premake5.lua": true,
-  },
+  "files.exclude": {},
 }

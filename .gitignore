@@ -8,6 +8,8 @@ bin
 *.xcworkspace
 *.xcodeproj
 
+/.devcontainer
+
 # Premake build directory
 /_build_
 
