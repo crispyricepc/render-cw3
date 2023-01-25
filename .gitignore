@@ -21,7 +21,7 @@ bin
 /compile_commands
 
 # 3rd-party libraries
-/external/glew*
+/external
 
 # Ignore bitmap files to save storage
 *.bmp

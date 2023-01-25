@@ -1,3 +1,5 @@
+require "export-compile-commands"
+
 workspace "oglShadersRelease"
 	language "C++"
 	cppdialect "C++17"
