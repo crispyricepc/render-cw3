@@ -6,4 +6,4 @@
 	url = git@github.com:g-truc/glm.git
 [submodule "export-compile-commands"]
 	path = export-compile-commands
-	url = git@github.com:tarruda/premake-export-compile-commands.git
+	url = https://github.com/tarruda/premake-export-compile-commands
