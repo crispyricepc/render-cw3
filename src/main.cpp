@@ -36,7 +36,7 @@ static const float m_band_sizes = 6;
 GLFWwindow *window;
 
 // Shaders
-GLuint programID;
+GLuint terrainProgramID;
 
 // Textures
 GLuint TextureA;
@@ -454,7 +454,7 @@ bool LoadShaders(GLuint &program, const char *vertex_file_path,
   return true;
 }
 
-void UnloadShaders() { glDeleteProgram(programID); }
+void UnloadShaders() { glDeleteProgram(terrainProgramID); }
 
 void LoadModel(string path, GLint mode) {
 
@@ -618,6 +618,22 @@ void UnloadTextures() {
   glDeleteTextures(1, &HeightMapTexture);
 }
 
+void terrainSetup(const CLIArgs &args, GLenum mode) {
+  LoadShaders(terrainProgramID,
+              "src/shaders/Simple.vert",
+              "src/shaders/Simple.frag",
+              "src/shaders/Simple.tesc",
+              "src/shaders/Simple.tese");
+
+  // Tesselation patches (quads)
+  glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+  // Use our shader
+
+  LoadTextures(args.textureA, args.textureB, args.textureC, args.heightMapPath);
+  LoadModel(args.modelPath, mode);
+}
+
 void terrainPass(const glm::mat4 &MVP,
                  const glm::mat4 &ModelMatrix,
                  const glm::mat4 &ViewMatrix,
@@ -625,15 +641,15 @@ void terrainPass(const glm::mat4 &MVP,
                  const glm::vec3 &lightPos,
                  GLenum mode) {
   // First pass: Base mesh
-  glUseProgram(programID);
+  glUseProgram(terrainProgramID);
 
-  GLuint HeightMapTexutreID = glGetUniformLocation(programID, "HeightMapTextureSampler");
-  GLuint TextureAID = glGetUniformLocation(programID, "TextureASampler");
-  GLuint TextureBID = glGetUniformLocation(programID, "TextureBSampler");
-  GLuint TextureCID = glGetUniformLocation(programID, "TextureCSampler");
-  GLuint TextureASpecularMapID = glGetUniformLocation(programID, "TextureASpecularMapSampler");
-  GLuint TextureBSpecularMapID = glGetUniformLocation(programID, "TextureBSpecularMapSampler");
-  GLuint TextureCSpecularMapID = glGetUniformLocation(programID, "TextureCSpecularMapSampler");
+  GLuint HeightMapTexutreID = glGetUniformLocation(terrainProgramID, "HeightMapTextureSampler");
+  GLuint TextureAID = glGetUniformLocation(terrainProgramID, "TextureASampler");
+  GLuint TextureBID = glGetUniformLocation(terrainProgramID, "TextureBSampler");
+  GLuint TextureCID = glGetUniformLocation(terrainProgramID, "TextureCSampler");
+  GLuint TextureASpecularMapID = glGetUniformLocation(terrainProgramID, "TextureASpecularMapSampler");
+  GLuint TextureBSpecularMapID = glGetUniformLocation(terrainProgramID, "TextureBSpecularMapSampler");
+  GLuint TextureCSpecularMapID = glGetUniformLocation(terrainProgramID, "TextureCSpecularMapSampler");
 
   // Set textures
   // Heightmap
@@ -664,17 +680,17 @@ void terrainPass(const glm::mat4 &MVP,
   glUniform1i(TextureCSpecularMapID, 6);
 
   // Get a handle for our uniforms
-  GLuint HeightMapSizeID = glGetUniformLocation(programID, "HeightMapSize");
-  GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
-  GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
-  GLuint BandAID = glGetUniformLocation(programID, "BandA");
-  GLuint BandBID = glGetUniformLocation(programID, "BandB");
-  GLuint BandSizesID = glGetUniformLocation(programID, "BandSizes");
-  GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-  GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
-  GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
-  GLuint ModelView3x3MatrixID = glGetUniformLocation(programID, "MV3x3");
-  GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+  GLuint HeightMapSizeID = glGetUniformLocation(terrainProgramID, "HeightMapSize");
+  GLuint HeightMapUVStepSizeID = glGetUniformLocation(terrainProgramID, "HeightMapUVStepSize");
+  GLuint HeightScaleID = glGetUniformLocation(terrainProgramID, "HeightScale");
+  GLuint BandAID = glGetUniformLocation(terrainProgramID, "BandA");
+  GLuint BandBID = glGetUniformLocation(terrainProgramID, "BandB");
+  GLuint BandSizesID = glGetUniformLocation(terrainProgramID, "BandSizes");
+  GLuint MatrixID = glGetUniformLocation(terrainProgramID, "MVP");
+  GLuint ViewMatrixID = glGetUniformLocation(terrainProgramID, "V");
+  GLuint ModelMatrixID = glGetUniformLocation(terrainProgramID, "M");
+  GLuint ModelView3x3MatrixID = glGetUniformLocation(terrainProgramID, "MV3x3");
+  GLuint LightID = glGetUniformLocation(terrainProgramID, "LightPosition_worldspace");
 
   // Send our transformation to the currently bound shader,
   glUniform2i(HeightMapSizeID, heightMapSize.x, heightMapSize.y);
@@ -724,19 +740,7 @@ int main(int argc, char *argv[]) {
   // Cull triangles which normal is not towards the camera
   glEnable(GL_CULL_FACE);
 
-  LoadShaders(programID,
-              "src/shaders/Simple.vert",
-              "src/shaders/Simple.frag",
-              "src/shaders/Simple.tesc",
-              "src/shaders/Simple.tese");
-
-  // Tesselation patches (quads)
-  glPatchParameteri(GL_PATCH_VERTICES, 4);
-
-  // Use our shader
-
-  LoadTextures(args.textureA, args.textureB, args.textureC, args.heightMapPath);
-  LoadModel(args.modelPath, mode);
+  terrainSetup(args, mode);
 
   // Our light position is fixed
   glm::vec3 lightPos = glm::vec3(0, -0.5, -0.5);
@@ -753,7 +757,7 @@ int main(int argc, char *argv[]) {
     }
     if (reloadShaders && glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
       UnloadShaders();
-      LoadShaders(programID, "src/shaders/Simple.vert", "src/shaders/Simple.frag",
+      LoadShaders(terrainProgramID, "src/shaders/Simple.vert", "src/shaders/Simple.frag",
                   "src/shaders/Simple.tesc", "src/shaders/Simple.tese");
       reloadShaders = false;
     }
