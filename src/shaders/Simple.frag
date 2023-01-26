@@ -64,7 +64,7 @@ void main() {
   float LightPower = 1.0;
   float shininess = 1;
 
-  vec2 texCoord = fract(UV * 4.0);
+  vec2 texCoord = fract(UV * 6.0);
 
   // Material properties
   vec3 MaterialDiffuseColor = getTextureAtHeight(TextureASampler, TextureBSampler, TextureCSampler,
