@@ -8,10 +8,10 @@
       "type": "lldb",
       "request": "launch",
       "name": "Debug",
-      "program": "${workspaceFolder}/build/oglShaders",
+      "program": "${workspaceFolder}/bin/main-debug-x64-gcc.exe",
       "args": "",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "Meson: Build oglShaders"
+      "preLaunchTask": "build"
     }
   ]
 }

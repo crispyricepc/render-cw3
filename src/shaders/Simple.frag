@@ -27,33 +27,33 @@ uniform mat4 M;
 uniform mat3 MV3x3;
 uniform vec3 LightPosition_worldspace;
 
-vec3 getTextureAtHeight(sampler2D sA, sampler2D sB, sampler2D sC, float height) {
+vec3 getTextureAtHeight(sampler2D sA, sampler2D sB, sampler2D sC, float height, vec2 texCoord) {
   // Lowest band, just return the first texture
   if (height < BandA * HeightScale) {
-    return texture(sA, UV).rgb;
+    return texture(sA, texCoord).rgb;
   }
 
   // Transition band, mix the two textures
   if (height < (BandA + BandSizes) * HeightScale) {
     float mixFactor = (height - (BandA * HeightScale)) / (BandSizes * HeightScale);
-    return mix(texture(sA, UV).rgb, texture(sB, UV).rgb,
+    return mix(texture(sA, texCoord).rgb, texture(sB, texCoord).rgb,
                mixFactor);
   }
 
   // Below BandB, just return the second texture
   if (height < BandB * HeightScale) {
-    return texture(sB, UV).rgb;
+    return texture(sB, texCoord).rgb;
   }
 
   // Transition between B and C
   if (height < (BandB + BandSizes) * HeightScale) {
     float mixFactor = (height - (BandB * HeightScale)) / (BandSizes * HeightScale);
-    return mix(texture(sB, UV).rgb, texture(sC, UV).rgb,
+    return mix(texture(sB, texCoord).rgb, texture(sC, texCoord).rgb,
                mixFactor);
   }
 
   // Above BandC, just return the third texture
-  return texture(sC, UV).rgb;
+  return texture(sC, texCoord).rgb;
 }
 
 void main() {
@@ -64,14 +64,16 @@ void main() {
   float LightPower = 1.0;
   float shininess = 1;
 
+  vec2 texCoord = fract(UV * 4.0);
+
   // Material properties
   vec3 MaterialDiffuseColor = getTextureAtHeight(TextureASampler, TextureBSampler, TextureCSampler,
-                                                 Position_worldspace.y);
+                                                 Position_worldspace.y, texCoord);
   vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1) * MaterialDiffuseColor;
   vec3 MaterialSpecularColor = getTextureAtHeight(TextureASpecularMapSampler,
                                                   TextureBSpecularMapSampler,
                                                   TextureCSpecularMapSampler,
-                                                  Position_worldspace.y);
+                                                  Position_worldspace.y, texCoord);
 
   // Distance to the light
   // float distance = length( LightPosition_worldspace - Position_worldspace );
@@ -103,7 +105,7 @@ void main() {
   // return;
 
   // /* Uncomment to show UVs instead */
-  // color = vec3(UV.x, UV.y, 0);
+  // color = vec3(texCoord.xy, 0);
   // return;
 
   // color = specular;
