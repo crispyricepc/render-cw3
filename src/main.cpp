@@ -618,6 +618,94 @@ void UnloadTextures() {
   glDeleteTextures(1, &HeightMapTexture);
 }
 
+void terrainPass(const glm::mat4 &MVP,
+                 const glm::mat4 &ModelMatrix,
+                 const glm::mat4 &ViewMatrix,
+                 const glm::mat3 &ModelView3x3Matrix,
+                 const glm::vec3 &lightPos,
+                 GLenum mode) {
+  // First pass: Base mesh
+  glUseProgram(programID);
+
+  GLuint HeightMapTexutreID = glGetUniformLocation(programID, "HeightMapTextureSampler");
+  GLuint TextureAID = glGetUniformLocation(programID, "TextureASampler");
+  GLuint TextureBID = glGetUniformLocation(programID, "TextureBSampler");
+  GLuint TextureCID = glGetUniformLocation(programID, "TextureCSampler");
+  GLuint TextureASpecularMapID = glGetUniformLocation(programID, "TextureASpecularMapSampler");
+  GLuint TextureBSpecularMapID = glGetUniformLocation(programID, "TextureBSpecularMapSampler");
+  GLuint TextureCSpecularMapID = glGetUniformLocation(programID, "TextureCSpecularMapSampler");
+
+  // Set textures
+  // Heightmap
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, HeightMapTexture);
+  glUniform1i(HeightMapTexutreID, 0);
+
+  // Diffuse textures
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, TextureA);
+  glUniform1i(TextureAID, 1);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, TextureB);
+  glUniform1i(TextureBID, 2);
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(GL_TEXTURE_2D, TextureC);
+  glUniform1i(TextureCID, 3);
+
+  // Specular maps
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(GL_TEXTURE_2D, TextureASpecularMap);
+  glUniform1i(TextureASpecularMapID, 4);
+  glActiveTexture(GL_TEXTURE5);
+  glBindTexture(GL_TEXTURE_2D, TextureBSpecularMap);
+  glUniform1i(TextureBSpecularMapID, 5);
+  glActiveTexture(GL_TEXTURE6);
+  glBindTexture(GL_TEXTURE_2D, TextureCSpecularMap);
+  glUniform1i(TextureCSpecularMapID, 6);
+
+  // Get a handle for our uniforms
+  GLuint HeightMapSizeID = glGetUniformLocation(programID, "HeightMapSize");
+  GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
+  GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
+  GLuint BandAID = glGetUniformLocation(programID, "BandA");
+  GLuint BandBID = glGetUniformLocation(programID, "BandB");
+  GLuint BandSizesID = glGetUniformLocation(programID, "BandSizes");
+  GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+  GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
+  GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
+  GLuint ModelView3x3MatrixID = glGetUniformLocation(programID, "MV3x3");
+  GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+
+  // Send our transformation to the currently bound shader,
+  glUniform2i(HeightMapSizeID, heightMapSize.x, heightMapSize.y);
+  glUniform2f(HeightMapUVStepSizeID, heightMapUVStepSize.x, heightMapUVStepSize.y);
+  glUniform1f(HeightScaleID, m_scale);
+  glUniform1f(BandAID, m_band_a);
+  glUniform1f(BandBID, m_band_b);
+  glUniform1f(BandSizesID, m_band_sizes);
+  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+  glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+  glUniformMatrix3fv(ModelView3x3MatrixID, 1, GL_FALSE,
+                     &ModelView3x3Matrix[0][0]);
+
+  // Set the light position
+  glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
+
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
+
+  // Draw the triangles !
+  glDrawElements(mode,                    // mode
+                 (GLsizei)indices.size(), // count
+                 GL_UNSIGNED_INT,         // type
+                 (void *)0                // element array buffer offset
+  );
+}
+
 int main(int argc, char *argv[]) {
   // Process CLI arguments
   CLIArgs args = processCLIArgs(argc, argv);
@@ -693,86 +781,7 @@ int main(int argc, char *argv[]) {
     glm::mat3 ModelView3x3Matrix = glm::mat3(ModelViewMatrix);
     glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
-    // First pass: Base mesh
-    glUseProgram(programID);
-
-    GLuint HeightMapTexutreID = glGetUniformLocation(programID, "HeightMapTextureSampler");
-    GLuint TextureAID = glGetUniformLocation(programID, "TextureASampler");
-    GLuint TextureBID = glGetUniformLocation(programID, "TextureBSampler");
-    GLuint TextureCID = glGetUniformLocation(programID, "TextureCSampler");
-    GLuint TextureASpecularMapID = glGetUniformLocation(programID, "TextureASpecularMapSampler");
-    GLuint TextureBSpecularMapID = glGetUniformLocation(programID, "TextureBSpecularMapSampler");
-    GLuint TextureCSpecularMapID = glGetUniformLocation(programID, "TextureCSpecularMapSampler");
-
-    // Set textures
-    // Heightmap
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, HeightMapTexture);
-    glUniform1i(HeightMapTexutreID, 0);
-
-    // Diffuse textures
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, TextureA);
-    glUniform1i(TextureAID, 1);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, TextureB);
-    glUniform1i(TextureBID, 2);
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, TextureC);
-    glUniform1i(TextureCID, 3);
-
-    // Specular maps
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, TextureASpecularMap);
-    glUniform1i(TextureASpecularMapID, 4);
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, TextureBSpecularMap);
-    glUniform1i(TextureBSpecularMapID, 5);
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, TextureCSpecularMap);
-    glUniform1i(TextureCSpecularMapID, 6);
-
-    // Get a handle for our uniforms
-    GLuint HeightMapSizeID = glGetUniformLocation(programID, "HeightMapSize");
-    GLuint HeightMapUVStepSizeID = glGetUniformLocation(programID, "HeightMapUVStepSize");
-    GLuint HeightScaleID = glGetUniformLocation(programID, "HeightScale");
-    GLuint BandAID = glGetUniformLocation(programID, "BandA");
-    GLuint BandBID = glGetUniformLocation(programID, "BandB");
-    GLuint BandSizesID = glGetUniformLocation(programID, "BandSizes");
-    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-    GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
-    GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
-    GLuint ModelView3x3MatrixID = glGetUniformLocation(programID, "MV3x3");
-    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
-
-    // Send our transformation to the currently bound shader,
-    glUniform2i(HeightMapSizeID, heightMapSize.x, heightMapSize.y);
-    glUniform2f(HeightMapUVStepSizeID, heightMapUVStepSize.x, heightMapUVStepSize.y);
-    glUniform1f(HeightScaleID, m_scale);
-    glUniform1f(BandAID, m_band_a);
-    glUniform1f(BandBID, m_band_b);
-    glUniform1f(BandSizesID, m_band_sizes);
-    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-    glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-    glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-    glUniformMatrix3fv(ModelView3x3MatrixID, 1, GL_FALSE,
-                       &ModelView3x3Matrix[0][0]);
-
-    // Set the light position
-    glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    // Draw the triangles !
-    glDrawElements(mode,                    // mode
-                   (GLsizei)indices.size(), // count
-                   GL_UNSIGNED_INT,         // type
-                   (void *)0                // element array buffer offset
-    );
+    terrainPass(MVP, ModelMatrix, ViewMatrix, ModelView3x3Matrix, lightPos, mode);
 
     // Swap buffers
     glfwSwapBuffers(window);
